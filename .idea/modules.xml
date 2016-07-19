@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/exareme.iml" filepath="$PROJECT_DIR$/exareme.iml" />
+      <module fileurl="file://$PROJECT_DIR$/exareme-common/exareme-common.iml" filepath="$PROJECT_DIR$/exareme-common/exareme-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/exareme-distribution/exareme-distribution.iml" filepath="$PROJECT_DIR$/exareme-distribution/exareme-distribution.iml" />
+      <module fileurl="file://$PROJECT_DIR$/exareme-jdbc/exareme-jdbc.iml" filepath="$PROJECT_DIR$/exareme-jdbc/exareme-jdbc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/exareme-master/exareme-master.iml" filepath="$PROJECT_DIR$/exareme-master/exareme-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/exareme-tools/exareme-tools.iml" filepath="$PROJECT_DIR$/exareme-tools/exareme-tools.iml" />
+      <module fileurl="file://$PROJECT_DIR$/exareme-utils/exareme-utils.iml" filepath="$PROJECT_DIR$/exareme-utils/exareme-utils.iml" />
+      <module fileurl="file://$PROJECT_DIR$/exareme-worker/exareme-worker.iml" filepath="$PROJECT_DIR$/exareme-worker/exareme-worker.iml" />
+      <module fileurl="file://$PROJECT_DIR$/exareme-tools/madis/madis.iml" filepath="$PROJECT_DIR$/exareme-tools/madis/madis.iml" />
+    </modules>
+  </component>
+</project>
