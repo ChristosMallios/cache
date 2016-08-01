@@ -20,6 +20,7 @@ import madgik.exareme.master.engine.AdpDBOptimizer;
 import madgik.exareme.master.engine.AdpDBQueryExecutionPlan;
 import madgik.exareme.master.engine.historicalData.AdpDBHistoricalQueryData;
 import madgik.exareme.master.engine.parser.AdpDBParser;
+import madgik.exareme.master.queryProcessor.decomposer.query.SQLQuery;
 import madgik.exareme.master.queryProcessor.graph.ConcreteOperator;
 import madgik.exareme.master.queryProcessor.graph.ExportToDotty;
 import madgik.exareme.master.queryProcessor.graph.Link;
@@ -375,7 +376,7 @@ public class RmiAdpDBClient implements AdpDBClient {
 
 	@Override
 	public AdpDBClientQueryStatus query(String queryID, String queryScript,
-			HashMap<String, Pair<byte[], String>> hashQueryMap, Map<String, String> extraCommands)
+			HashMap<String, Pair<byte[], String>> hashQueryMap, Map<String, String> extraCommands, List<SQLQuery> subQueries)
 					throws RemoteException {
 		// parse
 		AdpDBQueryID queryId = createNewQueryID();
@@ -420,7 +421,7 @@ public class RmiAdpDBClient implements AdpDBClient {
         if (!properties.isCachedEnable()) {
             return new RmiAdpDBClientQueryStatus(queryId, properties, plan, status);
         } else {
-            return new RmiAdpDBClientQueryStatus(queryId, properties, plan, status, this);
+            return new RmiAdpDBClientQueryStatus(queryId, properties, plan, status, this, subQueries);
         }
 	}
 }

@@ -41,6 +41,7 @@ public class RmiAdpDBClientQueryStatus implements AdpDBClientQueryStatus {
     private AdpDBStatus status;
     private String lastStatus;
     private String resultTableName;
+    private List<SQLQuery> subQueries;
     private TimeFormat timeF;
     private boolean finished;
 
@@ -54,6 +55,7 @@ public class RmiAdpDBClientQueryStatus implements AdpDBClientQueryStatus {
         this.timeF = new TimeFormat(TimeUnit.min);
         this.finished = false;
         this.client = null;
+        this.subQueries = null;
     }
 
     public RmiAdpDBClientQueryStatus(AdpDBQueryID queryId, AdpDBClientProperties properties,
@@ -67,6 +69,22 @@ public class RmiAdpDBClientQueryStatus implements AdpDBClientQueryStatus {
         this.timeF = new TimeFormat(TimeUnit.min);
         this.finished = false;
         this.client = client;
+        this.subQueries = null;
+    }
+
+    public RmiAdpDBClientQueryStatus(AdpDBQueryID queryId, AdpDBClientProperties properties,
+                                     AdpDBQueryExecutionPlan plan, AdpDBStatus status,
+                                     AdpDBClient client, List<SQLQuery> subQueries) {
+
+        this.properties = properties;
+        this.plan = plan;
+        this.status = status;
+        this.resultTableName = null;
+        this.lastStatus = null;
+        this.timeF = new TimeFormat(TimeUnit.min);
+        this.finished = false;
+        this.client = client;
+        this.subQueries = subQueries;
     }
 
     @Override
@@ -201,10 +219,12 @@ public class RmiAdpDBClientQueryStatus implements AdpDBClientQueryStatus {
             long totalSize;
             Set<String> pernamentTables = new HashSet<>();
             Cache cache = new Cache(properties);
+            String pernamentTableName = null;
 
             //loop sta pernament tables
             for (PhysicalTable resultTable : plan.getResultTables()) {
 
+                pernamentTableName = resultTable.getName();
                 if (properties.isCachedEnable()) {
 //                if (AdpDBProperties.getAdpDBProps().getString("db.cache").equals("true")) {
 
@@ -240,15 +260,26 @@ public class RmiAdpDBClientQueryStatus implements AdpDBClientQueryStatus {
                     cache.unpinTable(resultTable.getName());    //paizei na mn exei noima edw mias kai anaferete se pernament table. Sto shmeio auto prepei apla na mpei gia ta from tables
 
 
-                    try {
-                        sqlQuery = SQLQueryParser.parse(resultTable.getTable().getSqlQuery().replaceAll("_", " ").replaceAll("\\ {2,}", "_"), new NodeHashValues());
+                    if(subQueries == null) {
+                        try {
+                            sqlQuery = SQLQueryParser.parse(resultTable.getTable().getSqlQuery().replaceAll("_", " ").replaceAll("\\ {2,}", "_"), new NodeHashValues());
 
-                        List<Table> usedTables = new ArrayList<>(sqlQuery.getInputTables().size());
-                        for (madgik.exareme.master.queryProcessor.decomposer.query.Table usedTable : sqlQuery.getInputTables()) {
-                            usedCachedTables.add(usedTable.getName());
+                            List<Table> usedTables = new ArrayList<>(sqlQuery.getInputTables().size());
+                            for (madgik.exareme.master.queryProcessor.decomposer.query.Table usedTable : sqlQuery.getInputTables()) {
+                                usedCachedTables.add(usedTable.getName());
+                            }
+//                        cache.updateCacheForTableUse(usedTables);
+                        } catch (Exception e) {
                         }
-                        cache.updateCacheForTableUse(usedTables);
-                    } catch (Exception e) {
+                    }else{
+                        for(SQLQuery query : subQueries){
+                            if(query.getTemporaryTableName().equals(resultTable.getTable().getName())){
+                                for(madgik.exareme.master.queryProcessor.decomposer.query.Table queryTable : query.getInputTables()){
+                                    usedCachedTables.add(queryTable.getName());
+                                    System.out.println("tha mpei to "+queryTable.getName());
+                                }
+                            }
+                        }
                     }
                 } else {
                     if (resultTable.getTable().hasSQLDefinition() == false) {
@@ -348,21 +379,36 @@ public class RmiAdpDBClientQueryStatus implements AdpDBClientQueryStatus {
                         }
                         registry.addPhysicalTable(resultTable);
 
-                        try {
-                            sqlQuery = SQLQueryParser.parse(resultTable.getTable().getSqlQuery().replaceAll("_", " ").replaceAll("\\ {2,}", "_"), new NodeHashValues());
+                        if(subQueries == null) {
+                            try {
+                                sqlQuery = SQLQueryParser.parse(resultTable.getTable().getSqlQuery().replaceAll("_", " ").replaceAll("\\ {2,}", "_"), new NodeHashValues());
 
-                            for (madgik.exareme.master.queryProcessor.decomposer.query.Table usedTable : sqlQuery.getInputTables()) {
-                                usedCachedTables.add(usedTable.getName());
-                            }
+                                for (madgik.exareme.master.queryProcessor.decomposer.query.Table usedTable : sqlQuery.getInputTables()) {
+                                    usedCachedTables.add(usedTable.getName());
+                                }
 //                            cache.updateCacheForTableUse(usedTables);
-                        } catch (Exception e) {
+                            } catch (Exception e) {
+                            }
+                        } else{
+                            for(SQLQuery query : subQueries){
+                                System.out.println("pernamentTableName "+pernamentTableName);
+                                if(query.getTemporaryTableName().equals(pernamentTableName)){
+                                    for(madgik.exareme.master.queryProcessor.decomposer.query.Table queryTable : query.getInputTables()){
+                                        usedCachedTables.add(queryTable.getName());
+                                        System.out.println("tha mpei to "+queryTable.getName());
+                                    }
+                                }
+                            }
                         }
 
                     }
                 }
 
                 List<Table> usedTables = new ArrayList<>(usedCachedTables.size());
+                System.out.println("tableSet "+tableSet);
+                System.out.println("pernament "+pernamentTables);
                 for (String cachedTableName : usedCachedTables) {
+                    System.out.println("cachedTableName "+cachedTableName);
                     if (!tableSet.contains(cachedTableName) && !pernamentTables.contains(cachedTableName)) {
                         usedTables.add(new Table(cachedTableName));
                     }
@@ -384,11 +430,7 @@ public class RmiAdpDBClientQueryStatus implements AdpDBClientQueryStatus {
 
             //drop evicted table from cache
             for (String evictedTable : evictedTables) {
-                System.out.println("dropTable" + evictedTable);
 
-                if(client ==null){
-                    System.out.println("Is null");
-                }
                 AdpDBClientQueryStatus queryStatus = client.query("dropTable" + evictedTable, "distributed drop table " + evictedTable + ";");
                 System.out.println("dinw to " + "distributed drop table " + evictedTable + ";");
                 while (queryStatus.hasFinished() == false && queryStatus.hasError() == false) {

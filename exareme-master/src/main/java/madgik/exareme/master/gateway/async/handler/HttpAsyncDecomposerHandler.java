@@ -10,6 +10,7 @@ import madgik.exareme.master.connector.AdpDBConnector;
 import madgik.exareme.master.connector.AdpDBConnectorFactory;
 import madgik.exareme.master.connector.local.AdpDBQueryExecutorThread;
 import madgik.exareme.master.connector.rmi.AdpDBNetReaderThread;
+import madgik.exareme.master.engine.intermediateCache.Cache;
 import madgik.exareme.utils.association.Pair;
 import madgik.exareme.utils.properties.AdpDBProperties;
 import madgik.exareme.master.engine.AdpDBManager;
@@ -505,6 +506,12 @@ public class HttpAsyncDecomposerHandler implements HttpAsyncRequestHandler<HttpR
 							}
 							if (subqueries.size() == 1 && subqueries.get(0).existsInCache()) {
 								resultTblName = subqueries.get(0).getInputTables().get(0).getAlias();
+                                System.out.println("namesss "+resultTblName);
+                                Cache cache = new Cache(props);
+                                List<madgik.exareme.common.schema.Table> tables = new ArrayList<>(1);
+                                tables.add(new madgik.exareme.common.schema.Table(resultTblName));
+                                cache.updateCacheForTableUse(tables);
+
 							} else {
 								HashMap<String, Pair<byte[], String>> hashQueryMap = new HashMap<>();
 								Map<String, String> extraCommands = new HashMap<String, String>();
@@ -543,7 +550,7 @@ public class HttpAsyncDecomposerHandler implements HttpAsyncRequestHandler<HttpR
 
 								// when using cache
 								if (useCache) {
-									status = dbClient.query("dquery", decomposedQuery, hashQueryMap, extraCommands);
+									status = dbClient.query("dquery", decomposedQuery, hashQueryMap, extraCommands, subqueries);
 								} else {
 									status = dbClient.query("dquery", decomposedQuery, extraCommands);
 								}

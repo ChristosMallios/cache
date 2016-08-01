@@ -120,6 +120,13 @@ public class Util {
 		if(n.getChildren().isEmpty()){
 			return false;
 		}
+        if (finalMemo.getMemoValue(new MemoKey(n, null))==null) {
+            return false;
+        }
+        if (finalMemo.getMemoValue(new MemoKey(n, null)).getPlan()==null){
+            return false;
+        }
+
 		Node op = n.getChildAt(finalMemo.getMemoValue(new MemoKey(n, null)).getPlan().getChoice());
 		for (Node child : op.getChildren()) {
 			if (planContainsLargerResult(child, finalMemo, distributedLimit)) {
