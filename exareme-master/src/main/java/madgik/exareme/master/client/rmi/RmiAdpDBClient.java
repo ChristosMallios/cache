@@ -410,8 +410,10 @@ public class RmiAdpDBClient implements AdpDBClient {
 		Pair<byte[], String> sqlInfo;
 		for (PhysicalTable table : ptables) {
 			sqlInfo = hashQueryMap.get(table.getTable().getName());
-			table.getTable().setHashID(sqlInfo.getA());
-			table.addPartitionColumn(sqlInfo.getB());
+            if(sqlInfo == null) {
+                table.getTable().setHashID(null);
+                table.addPartitionColumn(null);
+            }
 		}
 
 		log.trace("Optimized.");

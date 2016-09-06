@@ -303,7 +303,7 @@ public class RmiAdpDBClientQueryStatus implements AdpDBClientQueryStatus {
                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 java.util.Date dateobj = new Date();
 
-                cache = new Cache(properties, Integer.parseInt(AdpDBProperties.getAdpDBProps().getString("db.cacheSize")));
+                cache = new Cache(properties, Long.parseLong(AdpDBProperties.getAdpDBProps().getString("db.cacheSize")));
 
                 Table table;
                 Partition partition;
@@ -436,6 +436,7 @@ public class RmiAdpDBClientQueryStatus implements AdpDBClientQueryStatus {
                 while (queryStatus.hasFinished() == false && queryStatus.hasError() == false) {
                     try {
                         Thread.sleep(10 * 1000);
+                        Thread.sleep(40);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

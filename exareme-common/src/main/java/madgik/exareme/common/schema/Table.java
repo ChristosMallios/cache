@@ -44,7 +44,11 @@ public class Table implements Serializable {
     }
 
     public void setHashID(byte[] hashID) {
-        this.hashID = hashID;
+        if(hashID != null) {
+            this.hashID = hashID;
+        }else{
+            this.hashID = null;
+        }
     }
 
     public void setSqlQuery(String query) {
