@@ -14,6 +14,8 @@ import madgik.exareme.utils.properties.AdpDBProperties;
 import org.apache.log4j.Logger;
 import madgik.exareme.utils.association.Triple;
 
+import javax.sql.rowset.serial.SerialBlob;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.Serializable;
 import java.sql.*;
@@ -139,16 +141,24 @@ public class Registry {
 						.prepareStatement("INSERT INTO table_index(index_name, " + "table_name, " + "column_name, "
 								+ "partition_number) " + "VALUES(?, ?, ?, ?)")) {
 			insertSqlStatement.setString(1, table.getTable().getName());
-			insertSqlStatement.setString(2, table.getTable().getSqlDefinition());
-			insertSqlStatement.setLong(3, table.getTable().getSize());
+            System.out.println("1 "+table.getTable().getName());
+            insertSqlStatement.setString(2, table.getTable().getSqlDefinition());
+            System.out.println("2 "+table.getTable().getSqlDefinition());
+            insertSqlStatement.setLong(3, table.getTable().getSize());
+            System.out.println("3 "+table.getTable().getSize());
 
-			if (properties != null && properties.isCachedEnable()) {
+            if (properties != null && properties.isCachedEnable()) {
+
 				if (table.getTable().isTemp())
 					insertSqlStatement.setInt(4, 1);
 				else
 					insertSqlStatement.setInt(4, 0);
 				insertSqlStatement.setString(5, table.getTable().getSqlQuery());
-				insertSqlStatement.setBytes(6, table.getTable().getHashID());
+                //java.sql.Blob blob=null;
+                //blob=new SerialBlob(table.getTable().getHashID() );
+				insertSqlStatement.setBinaryStream(6, new ByteArrayInputStream(table.getTable().getHashID()), table.getTable().getHashID().length);
+                       // setBytes(6, table.getTable().getHashID());
+                //
 				insertSqlStatement.setInt(7, 0);
 				insertSqlStatement.setInt(8, 1);
 				insertSqlStatement.setString(9,

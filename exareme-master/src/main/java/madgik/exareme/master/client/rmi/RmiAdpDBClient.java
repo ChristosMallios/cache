@@ -328,11 +328,16 @@ public class RmiAdpDBClient implements AdpDBClient {
 
 		Collection<PhysicalTable> ptables = plan.getScript().getTables();
 		Pair<byte[], String> sqlInfo;
-		for (PhysicalTable table : ptables) {
-			sqlInfo = hashQueryMap.get(table.getTable().getName());
-			table.getTable().setHashID(sqlInfo.getA());
-			table.addPartitionColumn(sqlInfo.getB());
-		}
+        for (PhysicalTable table : ptables) {
+            sqlInfo = hashQueryMap.get(table.getTable().getName());
+            if(sqlInfo == null) {
+                table.getTable().setHashID(null);
+                table.addPartitionColumn(null);
+            }else{
+                table.getTable().setHashID(sqlInfo.getA());
+                table.addPartitionColumn(sqlInfo.getB());
+            }
+        }
 
 		log.trace("Optimized.");
 
@@ -383,6 +388,7 @@ public class RmiAdpDBClient implements AdpDBClient {
 		QueryScript script = parser.parse(queryScript, registry);
 		log.trace("QueryScript parsed.");
 
+
 		for (Select s : script.getSelectQueries()) {
 			if (extraCommands.containsKey(s.getOutputTable().getTable().getName())) {
 				s.setExtraCommand(extraCommands.get(s.getOutputTable().getTable().getName()));
@@ -408,11 +414,16 @@ public class RmiAdpDBClient implements AdpDBClient {
 
 		Collection<PhysicalTable> ptables = plan.getScript().getTables();
 		Pair<byte[], String> sqlInfo;
-		for (PhysicalTable table : ptables) {
-			sqlInfo = hashQueryMap.get(table.getTable().getName());
+        for (PhysicalTable table : ptables) {
+            sqlInfo = hashQueryMap.get(table.getTable().getName());
             if(sqlInfo == null) {
                 table.getTable().setHashID(null);
                 table.addPartitionColumn(null);
+            }else{
+                System.out.println("mpikaaa");
+                table.getTable().setHashID(sqlInfo.getA());
+                table.addPartitionColumn(sqlInfo.getB());
+                System.out.println("name "+table.getTable().getName());
             }
 		}
 
